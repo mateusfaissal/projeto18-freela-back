@@ -8,7 +8,8 @@ export async function showProducts(req, res) {
         products.category, products.photo, users.name
         FROM products
         LEFT JOIN users
-        ON users.id = products."userId";
+        ON users.id = products."userId"
+        WHERE products."isActive" = true;
         `)).rows;
         res.status(200).send(products);
     } catch (err) {
@@ -22,14 +23,14 @@ export async function showProductsById(req, res) {
     try {
         const products = (await db.query(`
         SELECT products.id, products.price,
-        products.name, products.category,
+        products.name, products.category, products."isActive",
         products.description, products.photo,
         users.name AS "productsProvider", users.phone,
         users.email
         FROM products
         LEFT JOIN users
         ON users.id = products."userId"
-        WHERE products.id = $1;
+        WHERE products.id = $1 and products."isActive" = true;
         `,[id])).rows;
         res.status(200).send(products[0]);
     } catch (err) {
