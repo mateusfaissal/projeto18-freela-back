@@ -1,5 +1,5 @@
 import pg from "pg"
-import dotenv, { config } from "dotenv"
+import dotenv from "dotenv"
 
 dotenv.config()
 
