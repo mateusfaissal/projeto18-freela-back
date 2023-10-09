@@ -48,3 +48,11 @@ export function createNewProduct(name, description, price, category, photo, isAc
     RETURNING id
     `,[name, description, price, category, photo, isActive, id]);
 }
+
+export function updateProductTrue(id) {
+   return db.query(`UPDATE products SET "isActive"= false  WHERE id = $1;`,[id])
+}
+
+export function updateProductFalse(id) {
+    return db.query(`UPDATE products SET "isActive"= true  WHERE id = $1;`,[id])
+ }

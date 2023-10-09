@@ -1,5 +1,5 @@
 import { db } from "../database/db.connection.js";
-import { getAllProducts, getMyProducts, getProductsById, createNewProduct } from "../repository/products.repository.js";
+import { getAllProducts, getMyProducts, getProductsById, createNewProduct, updateProductTrue, updateProductFalse } from "../repository/products.repository.js";
 
 export async function showProducts(req, res) {
     try {
@@ -44,4 +44,24 @@ export async function createProduct(req, res) {
     } catch (err) {
         res.status(500).send(err.message);
     }
+}
+
+export async function isActive(req,res){
+	const { id } = req.params;
+
+    try{
+		const findProduct = await db.query(`SELECT * FROM products WHERE id = '${id}';`)
+		if(findProduct.rows.length === 0 ) return res.status(409).send("Produto não encontrado")
+		
+		if(findProduct.rows[0].isActive === true){
+			await updateProductTrue(id);
+		}else{
+			await updateProductFalse(id);
+		}
+
+		res.sendStatus(200)
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
+	
 }
