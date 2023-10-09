@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { db } from "../database/db.connection.js";
+import { getUserByEmail, createUser, loginUser, getToken } from "../repository/user.repository.js";
 
 
 export async function signUp(req, res) {
@@ -11,15 +12,10 @@ export async function signUp(req, res) {
     try {
         if (isNaN(phone)) return res.status(404).send("Insira um telefone válido");
 
-        const userexist = await db.query(`SELECT * FROM users WHERE email = $1`, [email]);
+        const userexist = await getUserByEmail(email);
         if (userexist.rows.length > 0) return res.status(409).send("Esse email já está cadastrado");
 
-        const newUser = await db.query(`
-        INSERT INTO users 
-          (name, email, password, phone, cpf)
-        VALUES 
-         ($1, $2, $3, $4, $5);
-        `, [name, email, hash, phone, cpf]);
+        const newUser = await createUser(name, email, hash, phone, cpf);
 
         res.status(201).send("Cadastro feito com sucesso");
     } catch (err) {
@@ -33,12 +29,7 @@ export async function signIn(req, res) {
 
 
     try {
-        const user = (await db.query(`
-            SELECT users.id, users.name, users.email, users.password, sessions.token
-            FROM users
-            LEFT JOIN sessions ON users.id = sessions."userId"
-            WHERE users.email = $1;
-        `, [email])).rows[0];
+        const user = (await loginUser(email)).rows[0];
 
         const verifyPassword = bcrypt.compareSync(password, user.password);
         if (!verifyPassword) { return res.status(401).send("Senha incorreta") };
@@ -67,12 +58,7 @@ export async function isLogged(req, res) {
     const { token } = req.body;
 
     try {
-        const user = (await db.query(`
-        SELECT users.id, users.name, users.email, sessions.token
-        FROM sessions
-        LEFT JOIN users ON users.id = sessions."userId"
-        WHERE sessions.token = $1;
-        `, [token])).rows[0];
+        const user = (await getToken(token)).rows[0];
 
         if (!user) {
             return res.status(401).send("Token incorreto")
